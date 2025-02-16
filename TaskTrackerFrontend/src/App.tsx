@@ -1,19 +1,27 @@
-import './App.css'
-import SignInForm from './Pages/SignIn'
-// import Home from './Pages/Home'
-import SignUp from './Pages/SignUp'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
+import Home from "./Pages/Home";
+import SignUp from "./Pages/SignUp";
+import SignIn from "./Pages/SignIn";
 
 function App() {
-
   return (
-    <>
-      <SignInForm/>
-      {/* <SignUp/> */}
-    </>
-  )
+    <Router>
+      <Routes>
+        {/* Default route (homepage) */}
+        <Route path="/" element={<SignIn />} />
+
+        {/* Sign Up page */}
+        <Route path="/signup" element={<SignUp />} />
+
+        {/* Sign In page */}
+        <Route path="/Home" element={<Home/>} />
+
+        404 Page Not Found (optional)
+        <Route path="*" element={<h1>404 - Not Found</h1>} />
+      </Routes>
+    </Router>
+  );
 }
 
-
-
-export default App
+export default App;

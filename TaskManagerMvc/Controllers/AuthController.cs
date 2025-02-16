@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 
 
 
@@ -29,6 +30,7 @@ public class AuthController : ControllerBase{
         }
 
         user.passwordHash = PasswordHasher.HashPassword(user.passwordHash);
+        user.RoleId = user.RoleId <= 0 ? 1 : user.RoleId;
 
         _context.Users.Add(user);
         _context.SaveChanges();
@@ -39,7 +41,8 @@ public class AuthController : ControllerBase{
     [HttpPost("signin")]
 
     public IActionResult SignIn([FromBody] SignInRequest signInRequest){
-        var ExistingUser = _context.Users.FirstOrDefault(e => e.Email == signInRequest.Email);
+        var ExistingUser = _context.Users.Include(u => u.Role)
+        .FirstOrDefault(e => e.Email == signInRequest.Email);
 
         if(ExistingUser == null || !PasswordHasher.verifyPassword(signInRequest.passwordHash, ExistingUser.passwordHash)){
             return BadRequest("Invaild email or PassWord");
@@ -47,7 +50,11 @@ public class AuthController : ControllerBase{
 
         var token = GenerateJwtToken(ExistingUser);
 
-        return Ok(new {Token = token}); 
+        return Ok(new
+        {
+            Token = token,
+            Role = ExistingUser.Role.RoleName    
+        }); 
     }
 
     private string GenerateJwtToken(User user)

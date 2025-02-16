@@ -1,14 +1,20 @@
+using System.ComponentModel.DataAnnotations.Schema;
 
+public class User 
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Email { get; set; }
+    public string passwordHash { get; set; }
 
-    public class User {
+    public int RoleId { get; set; } = 1;
 
-        public int Id {get; set;}
-        public string Name {get; set;}
-        public string Email {get; set;}
-        public string passwordHash {get; set;}
+    // Use the same name as the table or just 'Role'
+    [ForeignKey(nameof(RoleId))]
+    public Roles? Role { get; set; }
 
-        public ICollection<Task> Tasks {get; set;}  = new List<Task>();
-    }
+    public ICollection<Task> Tasks { get; set; } = new List<Task>();
+}
 
 
     public class SignInRequest

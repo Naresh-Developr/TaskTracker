@@ -3,12 +3,14 @@ import axios from "axios";
 
 interface AuthState{
     token: string | null;
+    role: string | null;
     status: 'idle' | 'loading' | 'succeeded' | 'failed';
     error: string | null;
 }
 
 const initialState: AuthState = {
     token:null,
+    role:null,
     status:'idle',
     error:null
 }
@@ -25,7 +27,7 @@ export const signIn = createAsyncThunk("auth/signin", async(signInRequest :{Emai
     
 )=> {
         const response = await axios.post('http://localhost:5148/api/auth/signin',signInRequest);
-        return response.data.token;
+        return response.data;
 });
 
 const authSlice = createSlice({
@@ -54,8 +56,11 @@ const authSlice = createSlice({
         })
         .addCase(signIn.fulfilled, (state,action) =>{
             state.status = 'succeeded';
-            state.token = action.payload;
-            localStorage.setItem('token', action.payload);
+            console.log(state);
+            state.token = action.payload.token;
+            state.role = action.payload.role;
+            localStorage.setItem('token', action.payload.token);
+            localStorage.setItem('role', action.payload.role);
         })
         .addCase(signIn.rejected, (state,action)=>{
             state.status = 'failed';
