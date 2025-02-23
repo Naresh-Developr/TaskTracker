@@ -1,10 +1,31 @@
-import React from 'react';
-import { Box, Paper, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Typography } from '@mui/material';
 import ProjectCard from '../../Components/ProjectCard';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+
+import CreateProjectForm from '../../Forms/CreateProjectForm';
+import { useDispatch } from 'react-redux';
+import { createProject } from '../../features/project/createProjectSlice';
 
 
 const AdminDashboard: React.FC = () => {
+
+  const dispatch = useDispatch();
+
   console.log("hello from Admin Dashboard");
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    startDate: null,
+    endDate: null,
+    status: 0,
+  });
+
+  const handleClose = () => {
+    setOpen(false); // Close the modal
+  };
 
   // Sample projects data (replace with your API data)
   const projects = [
@@ -19,7 +40,7 @@ const AdminDashboard: React.FC = () => {
   // Example list for sidebar items
   const sidebarItems = [
     "+ Create Users",
-    "+ Create Project",
+    "project",
     "Another Sidebar Item",
     "One More Item",
     "Scrolling Item 5",
@@ -27,13 +48,32 @@ const AdminDashboard: React.FC = () => {
     "Scrolling Item 7",
   ];
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleDateChange = (name: string, date: Date | null) => {
+    setFormData({ ...formData, [name]: date });
+  };
+
   const handleItemClick = (item: string) => {
-    // Example click handler
-    alert(`Clicked on: ${item}`);
+    if (item === "project") {
+      setOpen(true); // Open the modal when "Create Project" is clicked
+    } else {
+      alert(`Clicked on: ${item}`);
+    }
+  };
+
+  const handleSubmit = () => {
+    dispatch(createProject(formData))
+    console.log("Form Data:", formData); // Log the form data
+    setOpen(false); // Close the modal after submission
+    // You can add API calls here to save the project
   };
 
   return (
-  
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
     <Box 
       sx={{
         display: "grid",
@@ -125,8 +165,37 @@ const AdminDashboard: React.FC = () => {
           ))}
         </Box>
       </Box>
-    </Box>
 
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+          <Paper
+            sx={{
+              backgroundColor: "#1E1E1E",
+              color: "#fff",
+              borderRadius: 3,
+            }}
+          >
+            <DialogTitle sx={{ color: "#FF3B5C", textAlign: "center", fontWeight: "bold" }}>
+              Create New Project
+            </DialogTitle>
+            <DialogContent>
+              <CreateProjectForm
+                formData={formData}
+                handleChange={handleChange}
+                handleDateChange={handleDateChange}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose} sx={{ color: "#FF3B5C" }}>
+                Cancel
+              </Button>
+              <Button onClick={handleSubmit} variant="contained" sx={{ backgroundColor: "#FF3B5C", "&:hover": { backgroundColor: "#ff1f47" } }}>
+                Submit
+              </Button>
+            </DialogActions>
+          </Paper>
+        </Dialog>
+    </Box>
+    </LocalizationProvider>
   );
 };
 
