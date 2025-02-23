@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Typography } from '@mui/material';
-import ProjectCard from '../../Components/ProjectCard';
+import ProjectCard, { Project } from '../../Components/ProjectCard';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-
+import LockIcon from '@mui/icons-material/Lock';
 import CreateProjectForm from '../../Forms/CreateProjectForm';
 import { useDispatch } from 'react-redux';
 import { createProject } from '../../features/project/createProjectSlice';
+import axios from 'axios';
 
 
 const AdminDashboard: React.FC = () => {
@@ -15,6 +16,15 @@ const AdminDashboard: React.FC = () => {
 
   console.log("hello from Admin Dashboard");
   const [open, setOpen] = useState(false);
+  const [UserDialogopen, setUserDialogOpen] = useState(false);
+
+  const [UserformData, setUserFormData] = useState<UserFormData>({
+    name: "",
+    email: "",
+    passwordHash: "",
+    roleId: 1, // default to User
+  });
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -23,35 +33,62 @@ const AdminDashboard: React.FC = () => {
     status: 0,
   });
 
+  const [projects, setProjects] = useState<Project[]>([]);
+  const token = localStorage.getItem('token');
+
   const handleClose = () => {
     setOpen(false); // Close the modal
   };
 
-  // Sample projects data (replace with your API data)
-  const projects = [
-    { id: 1, title: "Project #1", description: "Description of project #1..." },
-    { id: 2, title: "Project #2", description: "Description of project #2..." },
-    { id: 3, title: "Project #3", description: "Description of project #3..." },
-    { id: 4, title: "Project #4", description: "Description of project #4..." },
-    { id: 5, title: "Project #5", description: "Description of project #5..." },
-    { id: 6, title: "Project #6", description: "Description of project #6..." },
-  ];
+  const UserDialoghandleClose = () => {
+    setUserDialogOpen(false); // Close the modal
+  };
+
+  const handleUserSubmit = () => {
+    //--TODO
+  }
+
+  useEffect(()=>{
+    const fetchProjects = async () => {
+      try {
+        console.log(token);
+        const response = await axios.get("http://localhost:5148/api/projects",{
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, 
+          },
+        });
+        setProjects(response.data); 
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
+    };
+  
+    fetchProjects();
+  },[])
+
 
   // Example list for sidebar items
   const sidebarItems = [
-    "+ Create Users",
-    "project",
-    "Another Sidebar Item",
-    "One More Item",
-    "Scrolling Item 5",
-    "Scrolling Item 6",
-    "Scrolling Item 7",
+    { label: "Create User ##", disabled: false },
+    { label: "Add project !!", disabled: false },
+    { label: "Create Tasks :) ", disabled: true },
+    { label: "Assign Users To project :(", disabled: true },
+    { label: "Scrolling Item 5", disabled: true },
+    { label: "Scrolling Item 6", disabled: true },
+    
   ];
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
+  // const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value } = e.target;
+  //   setFormData({ ...formData, [name]: value });
+  // }; --TODO
 
   const handleDateChange = (name: string, date: Date | null) => {
     setFormData({ ...formData, [name]: date });
@@ -79,7 +116,7 @@ const AdminDashboard: React.FC = () => {
         display: "grid",
         gridTemplateColumns: "250px 1fr", // Sidebar and main content
         width: "100%",
-        height: "100%", 
+        height: "90%", 
         overflow: "hidden", // Prevent page-level scrolling
         marginTop:5
       }}
@@ -97,30 +134,53 @@ const AdminDashboard: React.FC = () => {
         }}
       >
         {sidebarItems.map((item, idx) => (
-          <Paper
-            key={idx}
-            elevation={2}
-            onClick={() => handleItemClick(item)}
-            sx={{
-              p: 3,
-              mb: 2,
-              borderRadius: 2,
-              backgroundColor: "#e0e0e0",
-              cursor: "pointer",
+        <Paper
+          key={idx}
+          elevation={2}
+          // Only clickable if not disabled
+          onClick={
+            !item.disabled ? () => handleItemClick(item.label) : undefined
+          }
+          sx={{
+            p: 3,
+            mb: 2,
+            borderRadius: 2,
+            background: "linear-gradient(135deg, #8B0000 0%, #B22222 100%)",
+            transition: "filter 0.3s ease-in-out",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: 80,
+            cursor: "pointer",
+            "&:hover": {
+              filter: "brightness(1.2)",
+            },
+
+            // If disabled, override styles
+            ...(item.disabled && {
+              pointerEvents: "none",
+              opacity: 0.5,
+              cursor: "not-allowed",
               "&:hover": {
-                backgroundColor: "#d5d5d5",
+                filter: "none", // no hover effect if disabled
               },
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: 80,
-            }}
-          >
+            }),
+          }}
+        >
+          {item.disabled ? (
+            // If disabled, show the lock icon and label
             <Typography variant="h6" fontWeight="bold" textAlign="center">
-              {item}
+              <LockIcon fontSize="small" sx={{ mr: 1 }} />
+              {item.label}
             </Typography>
-          </Paper>
-        ))}
+          ) : (
+            // Otherwise just the label
+            <Typography variant="h6" fontWeight="bold" textAlign="center">
+              {item.label}
+            </Typography>
+          )}
+        </Paper>
+      ))}
       </Box>
 
       {/* Main Content Container */}
@@ -140,30 +200,16 @@ const AdminDashboard: React.FC = () => {
 
         {/* Project Cards Grid */}
         <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: 3,
-          }}
-        >
-          {projects.map((proj) => (
-            <ProjectCard
-              key={proj.id}
-              title={proj.title}
-              description={proj.description}
-            />
-          ))}
-        </Box>
-
-        {/* Extra Content to Force Scrolling */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6">Long Content Below</Typography>
-          {[...Array(20)].map((_, i) => (
-            <Typography key={i} variant="body1">
-              This is line {i + 1} of extra content...
-            </Typography>
-          ))}
-        </Box>
+        sx={{
+          display: "grid",
+          gap: 6,
+          gridTemplateColumns: "repeat(auto-fill, minmax(450px, 1fr))",
+        }}
+      >
+        {projects.map((proj) => (
+          <ProjectCard key={proj.id} project={proj} />
+        ))}
+      </Box>    
       </Box>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -194,6 +240,38 @@ const AdminDashboard: React.FC = () => {
             </DialogActions>
           </Paper>
         </Dialog>
+
+//-----------------------------------------------------------------------------
+
+        <Dialog open={UserDialogopen} onClose={UserDialoghandleClose} maxWidth="sm" fullWidth>
+          <Paper
+            sx={{
+              backgroundColor: "#1E1E1E",
+              color: "#fff",
+              borderRadius: 3,
+            }}
+          >
+            <DialogTitle sx={{ color: "#FF3B5C", textAlign: "center", fontWeight: "bold" }}>
+              Create New User
+            </DialogTitle>
+            <DialogContent>
+              <CreateProjectForm
+                formData={UserformData}
+                handleChange={()=>{}}
+                handleDateChange={()=>{}}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={UserDialoghandleClose} sx={{ color: "#FF3B5C" }}>
+                Cancel
+              </Button>
+              <Button onClick={handleUserSubmit} variant="contained" sx={{ backgroundColor: "#FF3B5C", "&:hover": { backgroundColor: "#ff1f47" } }}>
+                Submit
+              </Button>
+            </DialogActions>
+          </Paper>
+        </Dialog>
+
     </Box>
     </LocalizationProvider>
   );

@@ -23,20 +23,26 @@ public class AuthController : ControllerBase{
     }
 
     [HttpPost("signup")]
-    public IActionResult SignUp([FromBody]User user){
-
-        if(_context.Users.Any(u => u.Email == user.Email )){
-            return BadRequest("The user With this Email Exist");
-        }
-
-        user.passwordHash = PasswordHasher.HashPassword(user.passwordHash);
-        user.RoleId = user.RoleId <= 0 ? 1 : user.RoleId;
-
-        _context.Users.Add(user);
-        _context.SaveChanges();
-
-        return Ok();
+    public IActionResult SignUp([FromBody] SignUpRequest request)
+{
+    if(_context.Users.Any(u => u.Email == request.Email))
+    {
+        return BadRequest("A user with this email already exists");
     }
+
+    var user = new User
+    {
+        Name = request.Name,
+        Email = request.Email,
+        passwordHash = PasswordHasher.HashPassword(request.passwordHash),
+        RoleId = request.RoleId <= 0 ? 1 : request.RoleId
+    };
+
+    _context.Users.Add(user);
+    _context.SaveChanges();
+
+    return Ok();
+}
 
     [HttpPost("signin")]
 

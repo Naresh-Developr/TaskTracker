@@ -18,7 +18,7 @@ const initialState: AuthState = {
     error:null
 }
 
-export const signUp = createAsyncThunk('auth/signup', async(user : {name:string,email:string,password:string}
+export const signUp = createAsyncThunk('auth/signup', async(user : {name:string,email:string,password:string,RoleId?:number}
 
 ) => {
 
