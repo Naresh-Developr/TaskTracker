@@ -12,6 +12,7 @@ import {
 import { Email, Lock, Visibility, VisibilityOff } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
 import { signUp } from "../features/user/userSlice";
+import { useNavigate } from "react-router-dom";
 
 interface FormData {
   name: string;
@@ -20,22 +21,25 @@ interface FormData {
 }
 
 const SignUpForm: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
-    passwordHash: "",
-  });
+    const [formData, setFormData] = useState<FormData>({
+      name: "",
+      email: "",
+      passwordHash: "",
+    });
+    const [showPassword, setShowPassword] = useState(false);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-  const [showPassword, setShowPassword] = useState(false);
-  const dispatch = useDispatch()
-  const handleTogglePassword = () => {
-    setShowPassword(!showPassword);
-  };
+    const handleTogglePassword = () => {
+      setShowPassword(!showPassword);
+    };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    dispatch(signUp(formData));
-    console.log("Form submitted", formData);
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      dispatch(signUp(formData));
+      console.log("Sign Up form submitted", formData);
+      // After sign up, redirect to the sign in page so the user can log in
+      navigate("/");
   };
 
   return (
@@ -181,7 +185,7 @@ const SignUpForm: React.FC = () => {
           </Box>
 
           {/* Submit Button */}
-          <Button
+          <Button 
             type="submit"
             variant="contained"
             fullWidth
@@ -192,6 +196,7 @@ const SignUpForm: React.FC = () => {
               borderRadius: 2,
               "&:hover": { backgroundColor: "#ff1f47" },
             }}
+            // onClick={handleSubmit()};
           >
             Sign Up
           </Button>

@@ -1,6 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+
+
+
 interface AuthState{
     token: string | null;
     role: string | null;
@@ -9,8 +12,8 @@ interface AuthState{
 }
 
 const initialState: AuthState = {
-    token:null,
-    role:null,
+    token: localStorage.getItem('token'),
+    role: localStorage.getItem('role'),
     status:'idle',
     error:null
 }

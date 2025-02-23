@@ -1,28 +1,25 @@
 using Microsoft.EntityFrameworkCore;
 
-
 public class AppDbContext : DbContext
 {
-    public DbSet<Task> Tasks {get; set;}
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    { }
 
-    public DbSet<User> Users {get; set;}
-    
-    public DbSet<Roles> Roles {get; set;}
+    public DbSet<User> Users { get; set; }
+    public DbSet<Roles> Roles { get; set; }
+    public DbSet<Project> Projects { get; set; }
+    public DbSet<Task> Tasks { get; set; }
+    public DbSet<UserProject> UserProjects { get; set; }
 
-    public AppDbContext(DbContextOptions<AppDbContext> options) :base(options){}
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
 
-    // protected override void OnModelCreating(ModelBuilder modelBuilder)
-    // {
-    //     base.OnModelCreating(modelBuilder);
+        // Configure composite key for UserProject (if using many-to-many join table)
+        modelBuilder.Entity<UserProject>()
+            .HasKey(up => new { up.UserId, up.ProjectId });
 
-    //     modelBuilder.Entity<Roles>().HasData(
-    //         new Roles {RoleId = 1, RoleName = "user"},
-    //         new Roles {RoleId = 2, RoleName="admin"}
-    //     );
-
-    //     modelBuilder.Entity<User>()
-    //             .Property(u => u.RoleId)
-    //             .HasDefaultValue(1);
-    // }
-
+        // Configure relationships if needed
+    }
 }

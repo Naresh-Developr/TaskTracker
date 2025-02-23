@@ -23,22 +23,25 @@ interface SignInData {
 }
 
 const SignIn: React.FC = () => {
-  const [formData, setFormData] = useState<SignInData>({
-    email: "",
-    passwordHash: "",
-  });
-  const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const handleTogglePassword = () => {
-    setShowPassword(!showPassword);
-  };
-  const dispatch = useDispatch();
-  
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    dispatch(signIn(formData));
-    console.log("Sign In form submitted", formData);
-    navigate("Home");
+    const [formData, setFormData] = useState<SignInData>({
+      email: "",
+      passwordHash: "",
+    });
+    const navigate = useNavigate();
+    const [showPassword, setShowPassword] = useState(false);
+
+    const dispatch = useDispatch();
+
+    const handleTogglePassword = () => {
+      setShowPassword(!showPassword);
+    };
+
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      dispatch(signIn(formData));
+      console.log("Sign In form submitted", formData);
+      // Redirect to the protected home container. The default nested route redirect will handle routing based on role.
+      navigate("/home");
   };
 
   return (
@@ -68,7 +71,7 @@ const SignIn: React.FC = () => {
           align="center"
           sx={{ color: "#FF3B5C", mb: 2 }}
         >
-          Sign In
+          Sign In : )
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -147,7 +150,7 @@ const SignIn: React.FC = () => {
             <Link href="#" sx={{ color: "#FF3B5C", fontSize: "0.9rem" }}>
               Forgot Password?
             </Link>
-            <Link href="/" sx={{ color: "#FF3B5C", fontSize: "0.9rem" }}>
+            <Link href="/signup" sx={{ color: "#FF3B5C", fontSize: "0.9rem" }}>
               Sign Up
             </Link>
           </Box>

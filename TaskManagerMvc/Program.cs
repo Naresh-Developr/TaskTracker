@@ -15,7 +15,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))
     ));
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(
     options => {
         options.TokenValidationParameters = new TokenValidationParameters{
             ValidateIssuer = true,
@@ -38,6 +39,9 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
+// builder.Services.AddEndpointsApiExplorer();
+// builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
