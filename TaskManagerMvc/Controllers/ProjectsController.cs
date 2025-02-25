@@ -33,8 +33,9 @@ public class ProjectsController : ControllerBase{
 
     public async Task<IActionResult> GetProject()
     {
-        var projects = await _context.Projects.
-        Include(p=>p.UserProjects)
+        var projects = await _context.Projects
+        .Include(p => p.Tasks) 
+        .Include(p=>p.UserProjects)
         .ThenInclude(up=>up.User)
         .ToListAsync();
         
