@@ -14,18 +14,21 @@ interface UserFormData {
   name: string;
   email: string;
   passwordHash: string;
-  roleId: number; // 1 for User, 2 for Admin
+  roleId: number;
 }
 
 interface CreateUserFormProps {
   formData: UserFormData;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => void;
+  // Handler for TextField changes
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  // Handler for Select changes
+  handleSelectChange: (e: React.ChangeEvent<{ name?: string; value: unknown }>) => void;
 }
 
-const CreateUserForm: React.FC<CreateUserFormProps> = ({ formData, handleChange }) => {
+const CreateUserForm: React.FC<CreateUserFormProps> = ({ formData, handleChange, handleSelectChange }) => {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 2 }}>
-      {/* Name */}
+      {/* Name Field */}
       <TextField
         label="Name"
         name="name"
@@ -38,7 +41,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ formData, handleChange 
               <AccountCircle sx={{ color: "#888" }} />
             </InputAdornment>
           ),
-          style: { color: "#fff" },
         }}
         sx={{
           "& .MuiInputLabel-root": { color: "gray" },
@@ -49,7 +51,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ formData, handleChange 
         }}
       />
 
-      {/* Email */}
+      {/* Email Field */}
       <TextField
         label="Email"
         name="email"
@@ -63,7 +65,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ formData, handleChange 
               <Email sx={{ color: "#888" }} />
             </InputAdornment>
           ),
-          style: { color: "#fff" },
         }}
         sx={{
           "& .MuiInputLabel-root": { color: "gray" },
@@ -74,7 +75,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ formData, handleChange 
         }}
       />
 
-      {/* Password */}
+      {/* Password Field */}
       <TextField
         label="Password"
         name="passwordHash"
@@ -88,7 +89,6 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ formData, handleChange 
               <Lock sx={{ color: "#888" }} />
             </InputAdornment>
           ),
-          style: { color: "#fff" },
         }}
         sx={{
           "& .MuiInputLabel-root": { color: "gray" },
@@ -99,16 +99,15 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({ formData, handleChange 
         }}
       />
 
-      {/* Role */}
+      {/* Role Selection */}
       <FormControl fullWidth>
         <InputLabel sx={{ color: "gray" }}>Role</InputLabel>
         <Select
           name="roleId"
           value={formData.roleId}
-          onChange={handleChange}
+          onChange={handleSelectChange}
           label="Role"
           sx={{
-            color: "#fff",
             "& .MuiOutlinedInput-root": {
               "& fieldset": { borderColor: "#444" },
               "&:hover fieldset": { borderColor: "#FF3B5C" },

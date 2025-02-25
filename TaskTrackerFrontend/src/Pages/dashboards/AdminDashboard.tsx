@@ -8,6 +8,17 @@ import CreateProjectForm from '../../Forms/CreateProjectForm';
 import { useDispatch } from 'react-redux';
 import { createProject } from '../../features/project/createProjectSlice';
 import axios from 'axios';
+import CreateUserForm from '../../Forms/CreateUserForm';
+import { signUp } from '../../features/user/userSlice';
+import AssignUsersForm from '../../Forms/AssignUsersForm';
+
+
+interface UserFormData {
+  name: string;
+  email: string;
+  passwordHash: string;
+  roleId: number; // 1 for User, 2 for Admin
+}
 
 
 const AdminDashboard: React.FC = () => {
@@ -16,13 +27,16 @@ const AdminDashboard: React.FC = () => {
 
   console.log("hello from Admin Dashboard");
   const [open, setOpen] = useState(false);
-  const [UserDialogopen, setUserDialogOpen] = useState(false);
-
-  const [UserformData, setUserFormData] = useState<UserFormData>({
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const token = localStorage.getItem('token');
+  const [users, setUsers] = useState<{ id: number; name: string }[]>([]);
+  const [userFormData, setUserFormData] = useState<UserFormData>({
     name: "",
     email: "",
     passwordHash: "",
-    roleId: 1, // default to User
+    roleId: 1, // Default to User role
   });
 
   const [formData, setFormData] = useState({
@@ -33,20 +47,30 @@ const AdminDashboard: React.FC = () => {
     status: 0,
   });
 
-  const [projects, setProjects] = useState<Project[]>([]);
-  const token = localStorage.getItem('token');
-
+  // Example list for sidebar items
+  const sidebarItems = [
+    { label: "User", disabled: false },
+    { label: "project", disabled: false },
+    { label: "assignUser", disabled: false },
+    { label: "Create Tasks :) ", disabled: true },
+    { label: "Scrolling Item 5", disabled: true },
+    { label: "Scrolling Item 6", disabled: true },
+    
+  ];
+  
   const handleClose = () => {
     setOpen(false); // Close the modal
   };
 
-  const UserDialoghandleClose = () => {
-    setUserDialogOpen(false); // Close the modal
+  const handleUserSubmit = () => {
+    console.log("User Created:", userFormData);
+    dispatch(signUp(userFormData));
+    console.log("Form Data:", userFormData); 
+    setUserFormData({ name: "", email: "", passwordHash: "", roleId: 1 });
+    setUserDialogOpen(false);
   };
 
-  const handleUserSubmit = () => {
-    //--TODO
-  }
+  
 
   useEffect(()=>{
     const fetchProjects = async () => {
@@ -67,17 +91,22 @@ const AdminDashboard: React.FC = () => {
     fetchProjects();
   },[])
 
+  useEffect(() => {
+    axios.get('http://localhost:5148/api/users', {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        // Include the Authorization header if required.
+      },
+    })
+    .then((res) => {
+      console.log('Fetched users:', res.data); // Check your console
+      setUsers(res.data);
+    })
+    .catch((err) => console.error('Error fetching users', err));
+  }, []);
 
-  // Example list for sidebar items
-  const sidebarItems = [
-    { label: "Create User ##", disabled: false },
-    { label: "Add project !!", disabled: false },
-    { label: "Create Tasks :) ", disabled: true },
-    { label: "Assign Users To project :(", disabled: true },
-    { label: "Scrolling Item 5", disabled: true },
-    { label: "Scrolling Item 6", disabled: true },
-    
-  ];
+
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,10 +114,12 @@ const AdminDashboard: React.FC = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const { name, value } = e.target;
-  //   setFormData({ ...formData, [name]: value });
-  // }; --TODO
+  const handleUserChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
+    const { name, value } = e.target;
+    if (name) {
+      setUserFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
 
   const handleDateChange = (name: string, date: Date | null) => {
     setFormData({ ...formData, [name]: date });
@@ -97,16 +128,28 @@ const AdminDashboard: React.FC = () => {
   const handleItemClick = (item: string) => {
     if (item === "project") {
       setOpen(true); // Open the modal when "Create Project" is clicked
-    } else {
+    }else if (item === "User"){
+      setUserDialogOpen(true);
+    }else if (item === "assignUser"){
+      setAssignDialogOpen(true);
+    } 
+    else {
       alert(`Clicked on: ${item}`);
     }
   };
 
   const handleSubmit = () => {
     dispatch(createProject(formData))
-    console.log("Form Data:", formData); // Log the form data
-    setOpen(false); // Close the modal after submission
-    // You can add API calls here to save the project
+    console.log("Form Data:", formData); 
+    setOpen(false); 
+    
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
+    const { name, value } = e.target;
+    if (name) {
+      setUserFormData((prev) => ({ ...prev, [name]: value as number }));
+    }
   };
 
   return (
@@ -200,16 +243,16 @@ const AdminDashboard: React.FC = () => {
 
         {/* Project Cards Grid */}
         <Box
-        sx={{
-          display: "grid",
-          gap: 6,
-          gridTemplateColumns: "repeat(auto-fill, minmax(450px, 1fr))",
-        }}
-      >
-        {projects.map((proj) => (
-          <ProjectCard key={proj.id} project={proj} />
-        ))}
-      </Box>    
+          sx={{
+            display: "grid",
+            gap: 6,
+            gridTemplateColumns: "repeat(auto-fill, minmax(450px, 1fr))",
+          }}
+        >
+          {projects.map((proj) => (
+            <ProjectCard key={proj.id} project={proj} users={users} />
+          ))}
+        </Box>    
       </Box>
 
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -243,34 +286,38 @@ const AdminDashboard: React.FC = () => {
 
 //-----------------------------------------------------------------------------
 
-        <Dialog open={UserDialogopen} onClose={UserDialoghandleClose} maxWidth="sm" fullWidth>
-          <Paper
-            sx={{
-              backgroundColor: "#1E1E1E",
-              color: "#fff",
-              borderRadius: 3,
-            }}
-          >
-            <DialogTitle sx={{ color: "#FF3B5C", textAlign: "center", fontWeight: "bold" }}>
-              Create New User
-            </DialogTitle>
-            <DialogContent>
-              <CreateProjectForm
-                formData={UserformData}
-                handleChange={()=>{}}
-                handleDateChange={()=>{}}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={UserDialoghandleClose} sx={{ color: "#FF3B5C" }}>
-                Cancel
-              </Button>
-              <Button onClick={handleUserSubmit} variant="contained" sx={{ backgroundColor: "#FF3B5C", "&:hover": { backgroundColor: "#ff1f47" } }}>
-                Submit
-              </Button>
-            </DialogActions>
-          </Paper>
-        </Dialog>
+        
+      <Dialog open={userDialogOpen} onClose={() => setUserDialogOpen(false)} maxWidth="sm" fullWidth>
+        <Paper
+          sx={{
+            backgroundColor: "#1E1E1E",
+            color: "#fff",
+            borderRadius: 3,
+          }}
+        >
+          <DialogTitle sx={{ color: "#FF3B5C", textAlign: "center", fontWeight: "bold" }}>
+            Create New User
+          </DialogTitle>
+          <DialogContent>
+            <CreateUserForm 
+              formData={userFormData} 
+              handleChange={handleUserChange}
+              handleSelectChange={handleSelectChange}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setUserDialogOpen(false)} sx={{ color: "#FF3B5C" }}>
+              Cancel
+            </Button>
+            <Button onClick={handleUserSubmit} variant="contained" sx={{ backgroundColor: "#FF3B5C", "&:hover": { backgroundColor: "#ff1f47" } }}>
+              Submit
+            </Button>
+          </DialogActions>
+        </Paper>
+      </Dialog>
+
+
+      <AssignUsersForm open={assignDialogOpen} handleClose={() => setAssignDialogOpen(false)} />
 
     </Box>
     </LocalizationProvider>
